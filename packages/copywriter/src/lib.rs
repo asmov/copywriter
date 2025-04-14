@@ -1,5 +1,7 @@
 pub mod config;
 pub mod run;
 
-pub use crate::{run::*, config::*};
+use asmov_copywriter_lib::model as model;
+
+pub use crate::{run::*, config::*, model::*};
 

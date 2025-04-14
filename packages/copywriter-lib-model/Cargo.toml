@@ -1,14 +1,13 @@
 [package]
-name = "asmov-copywriter-lib"
+name = "asmov-copywriter-lib-model"
 version = "0.1.0"
 edition = "2024"
-description = "Library for Asmov Copywriter"
+description = "Model library for Asmov Copywriter"
 authors = ["Asmov LLC <development.pub@asmov.software>"]
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/asmov/copywriter"
 homepage = "https://asmov.software"
 categories = []
-keywords = ["asmov", "copywriter"]
+keywords = []
 
 [dependencies]
-asmov-copywriter-lib-model = { version = "0.1.0", path = "../copywriter-lib-model" }
