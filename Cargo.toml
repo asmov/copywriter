@@ -3,4 +3,5 @@ resolver = "2"
 members = [
     "packages/copywriter",
     "packages/copywriter-lib",
+    "packages/copywriter-lib-model",
 ]

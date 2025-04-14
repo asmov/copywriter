@@ -1,1 +1,4 @@
-pub use asmov_copywriter_lib_model as modelr;
+pub mod config;
+pub mod modeling;
+
+pub use crate::{config::*, modeling::*};

@@ -1,0 +1,18 @@
+* {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+body > header {
+    margin-bottom: 20px;
+}
+
+body > header > section.banner {
+    display: grid;
+}
+
+body > header > section.banner img {
+    max-width: 100px;
+    max-height: 100px;
+}

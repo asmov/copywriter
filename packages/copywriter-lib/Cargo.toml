@@ -11,4 +11,14 @@ categories = []
 keywords = ["asmov", "copywriter"]
 
 [dependencies]
-asmov-copywriter-lib-model = { version = "0.1.0", path = "../copywriter-lib-model" }
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+handlebars = { version = "6", features = ["walkdir", "dir_source"] }
+pulldown-cmark = { version = "0.13", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+[dev-dependencies]
+asmov-common-testing = "2"
+asmov-copywriter-lib-model = { path = "../copywriter-lib-model" }
