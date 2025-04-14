@@ -50,6 +50,17 @@ mod tests {
             let json = std::fs::read_to_string(json_file).unwrap();
             let article: model::Article = serde_json::from_str(&json).unwrap();
 
+            //test validation
+            article.validate().unwrap();
+
+            //toml
+            let toml_file = article_dir.join(model::Article::type_toml_data_filename());
+            let toml = std::fs::read_to_string(toml_file).unwrap();
+            let article_toml: model::Article = toml::from_str(&toml).unwrap();
+
+            // should fail for missing slug
+            assert!(article_toml.validate().is_err());
+
             //markdown
             let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
             let md_parser = pulldown_cmark::Parser::new(&md);
@@ -58,9 +69,10 @@ mod tests {
             pulldown_cmark::html::push_html(&mut md_content, md_parser);
 
             assert_eq!(slug, article.slug);
-            dbg!("slug: {}", slug);
-            dbg!("article: {:?}", &article);
-            dbg!("content: {}", &md_content);
+            dbg!(slug);
+            dbg!(&article_toml);
+            dbg!(&article);
+            dbg!(&md_content);
 
             articles.push((article, md_content))
         }

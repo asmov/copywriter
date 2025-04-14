@@ -1,5 +1,13 @@
+use serde;
+use validator;
 
-pub trait Model {
+pub trait Model:
+    std::fmt::Debug
+    + Default
+    + serde::Serialize
+    + serde::de::DeserializeOwned
+    + validator::Validate
+{
     fn slug(&self) -> &str;
 }
 
@@ -18,6 +26,9 @@ pub trait ModelType: Model {
     fn model_dirname(&self) -> &'static str {
         &Self::MODEL_SLUG
     }
+    fn model_toml_data_filename(&self) -> String {
+        format!("{}.toml", Self::MODEL_SLUG)
+    }
 
     fn model_json_data_filename(&self) -> String {
         format!("{}.json", Self::MODEL_SLUG)
@@ -25,6 +36,10 @@ pub trait ModelType: Model {
 
     fn model_markdown_content_filename(&self) -> String {
         format!("{}.md", Self::MODEL_SLUG)
+    }
+
+    fn toml_data_slug_filename(&self) -> String {
+        format!("{}.toml", self.slug())
     }
 
     fn json_data_slug_filename(&self) -> String {
@@ -45,6 +60,10 @@ pub trait ModelType: Model {
 
     fn type_dirname() -> &'static str {
         &Self::MODEL_SLUG
+    }
+
+    fn type_toml_data_filename() -> String {
+        format!("{}.toml", Self::MODEL_SLUG)
     }
 
     fn type_json_data_filename() -> String {
@@ -93,5 +112,15 @@ impl Content for MarkdownContent {
 
     fn content(&self) -> &str {
         &self.content
+    }
+}
+
+pub fn validate_slug(value: &String) -> Result<(), validator::ValidationError> {
+    if value.is_empty() {
+        Err(validator::ValidationError::new("empty slug"))
+    } else if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        Ok(())
+    } else {
+        Err(validator::ValidationError::new("invalid slug"))
     }
 }
