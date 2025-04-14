@@ -1,0 +1,17 @@
+<article>
+    <header>
+        <img alt="topic" src="./images/icons/topic.svg" />
+        <h1><a href="article/{{article.slug}}.html">{{article.headline}}</a></h1>
+        <h2>{{article.subheadline}}</h2>
+    </header>
+    <section>
+        <blockquote cite="article/{{article.slug}}.html">
+          <p>0123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789</p>
+        </blockquote>
+      </section>
+    <footer>
+        <img class="author" alt="{{article.author_slug}}" src="./images/team/{{article.author_slug}}.jpeg" />
+        <p class="author">{{article.author_slug}}</p>
+        <p class="published"><time datetime="{{article.published_timestamp}}">{{article.published_timestamp}}</time></p>
+    </footer>
+</article>

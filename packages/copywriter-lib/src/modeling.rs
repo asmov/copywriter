@@ -19,12 +19,20 @@ pub trait ModelType: Model {
         &Self::MODEL_SLUG
     }
 
-    fn model_json_filename(&self) -> String {
+    fn model_json_data_filename(&self) -> String {
         format!("{}.json", Self::MODEL_SLUG)
     }
 
-    fn json_slug_filename(&self) -> String {
+    fn model_markdown_content_filename(&self) -> String {
+        format!("{}.md", Self::MODEL_SLUG)
+    }
+
+    fn json_data_slug_filename(&self) -> String {
         format!("{}.json", self.slug())
+    }
+
+    fn markdown_content_slug_filename(&self) -> String {
+        format!("{}.md", self.slug())
     }
 
     fn type_name() -> &'static str {
@@ -39,8 +47,12 @@ pub trait ModelType: Model {
         &Self::MODEL_SLUG
     }
 
-    fn type_json_filename() -> String {
+    fn type_json_data_filename() -> String {
         format!("{}.json", Self::MODEL_SLUG)
+    }
+
+    fn type_markdown_content_filename() -> String {
+        format!("{}.md", Self::MODEL_SLUG)
     }
 }
 

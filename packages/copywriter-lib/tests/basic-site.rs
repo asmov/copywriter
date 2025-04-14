@@ -22,29 +22,67 @@ mod tests {
             .build();
 
         let config = copywriter_lib::Config {
-            name: "Basic Site".to_string(),
             input_dir: test.fixture_dir().to_path_buf(),
             output_dir: test.temp_dir().to_path_buf(),
+            name: "Basic Site".to_string(),
             url: "http://localhost:8080".to_string(),
+            owner: "John Doe".to_string(),
+            owner_url: "https://example.com".to_string(),
+            description: "A basic site".to_string(),
         };
 
-        let publish_dir = test.fixture_dir().join("input").join("content").join("publish");
+        let fixture_input_dir = test.fixture_dir().join("input");
+        let publish_dir = fixture_input_dir.join("content").join("publish");
+
+        // parse articles
         let articles_dir = publish_dir.join(model::Article::type_dirname());
         let article_dirs = articles_dir
             .read_dir().unwrap()
             .map(|entry| entry.unwrap().path())
             .collect::<Vec<_>>();
 
+        let mut articles = Vec::new();
         for article_dir in article_dirs {
             let slug = article_dir.file_name().unwrap().to_string_lossy().to_string();
-            let json_file = article_dir.join(model::Article::type_json_filename());
-            let article: model::Article = serde_json::from_str(
-                &std::fs::read_to_string(json_file).unwrap()
-            ).unwrap();
+
+            //json
+            let json_file = article_dir.join(model::Article::type_json_data_filename());
+            let json = std::fs::read_to_string(json_file).unwrap();
+            let article: model::Article = serde_json::from_str(&json).unwrap();
+
+            //markdown
+            let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
+            let md_parser = pulldown_cmark::Parser::new(&md);
+
+            let mut md_content = String::new();
+            pulldown_cmark::html::push_html(&mut md_content, md_parser);
 
             assert_eq!(slug, article.slug);
             dbg!("slug: {}", slug);
-            dbg!("article: {:?}", article);
+            dbg!("article: {:?}", &article);
+            dbg!("content: {}", &md_content);
+
+            articles.push((article, md_content))
         }
+
+        let src_dir = fixture_input_dir.join("src");
+        let hbs_dir = src_dir.join("hbs");
+
+        // create index.html
+        let index_index_file = hbs_dir.join("index.hbs");
+        let index_hbs = std::fs::read_to_string(index_index_file).unwrap();
+        let mut handlebars = handlebars::Handlebars::new();
+
+        let index_json = serde_json::json!({
+            "articles": articles,
+            "site": config
+        });
+
+        let index_html = handlebars.render_template(&index_hbs, &index_json).unwrap();
+
+        dbg!("index.html", &index_html);
+
+
+        // create each article html
     }
 }

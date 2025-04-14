@@ -4,10 +4,13 @@ use toml;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Config {
-    pub name: String,
     pub input_dir: PathBuf,
     pub output_dir: PathBuf,
-    pub url: String, 
+    pub name: String,
+    pub url: String,
+    pub owner: String,
+    pub owner_url: String,
+    pub description: String,
 }
 
 impl Config {
