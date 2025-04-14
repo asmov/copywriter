@@ -1,8 +1,11 @@
 use serde;
+use validator;
 use crate::*;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize, validator::Validate)]
+#[serde(default)]
 pub struct Article {
+    #[validate(custom(function = validate_slug))]
     pub slug: String,
     pub headline: String,
     pub subheadline: String,
