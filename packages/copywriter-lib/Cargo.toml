@@ -1,0 +1,13 @@
+[package]
+name = "asmov-copywriter-lib"
+version = "0.1.0"
+edition = "2024"
+description = "Library for Asmov Copywriter"
+authors = ["Asmov LLC <development.pub@asmov.software>"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/asmov/copywriter"
+homepage = "https://asmov.software"
+categories = ["development-tools"]
+keywords = ["website", "builder", "building"]
+
+[dependencies]
