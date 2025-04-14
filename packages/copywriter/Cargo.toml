@@ -10,4 +10,14 @@ homepage = "https://asmov.software"
 categories = ["development-tools"]
 keywords = ["website", "builder", "building"]
 
+[[bin]]
+name = "copywriter"
+path = "src/main.rs"
+
 [dependencies]
+anyhow = "1.0.98"
+clap = { version = "4.5.36", features = ["derive"] }
+handlebars = { version = "6.3.2", features = ["walkdir", "dir_source"] }
+pulldown-cmark = { version = "0.13.0", features = ["serde"] }
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.20"
