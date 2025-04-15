@@ -1,13 +1,12 @@
-use std::path::PathBuf;
 use crate::*;
 
 pub fn run() {
     match try_run() {
         Ok(_) => (),
         Err(e) => {
-            match e.cause() {
+            match e.source() {
                 Some(cause) => eprintln!("error: {} :: {}", e, cause),
-                None => eprintln!("error: {}", e)
+                None => eprintln!("error: {}", e),
             }
 
             std::process::exit(1);
