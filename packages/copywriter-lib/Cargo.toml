@@ -15,6 +15,7 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 handlebars = { version = "6", features = ["walkdir", "dir_source"] }
 pulldown-cmark = { version = "0.13", features = ["serde"] }
+pulldown-cmark-toc = "0.7"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"

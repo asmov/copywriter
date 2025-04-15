@@ -22,6 +22,25 @@
 <main>
   <section class="articles">
     {{#each articles}}
+    {{#with this as | article | }}
+    <article>
+        <header>
+            <img alt="topic" src="./images/icons/topic.svg" />
+            <h1><a href="article/{{article.meta.slug}}.html">{{article.meta.headline}}</a></h1>
+            <h2>{{article.meta.subheadline}}</h2>
+        </header>
+        <section>
+            <blockquote cite="article/{{article.meta.slug}}.html">
+                {{{article.content.html}}}
+            </blockquote>
+        </section>
+        <footer>
+            <img class="author" alt="{{article.meta.author_slug}}" src="./images/team/{{article.meta.author_slug}}.jpeg" />
+            <p class="author">{{article.meta.author_slug}}</p>
+            <p class="published"><time datetime="{{article.meta.published_timestamp}}">{{article.meta.meta.published_timestamp}}</time></p>
+        </footer>
+    </article>
+    {{/with}}
     {{/each}}
   </section>
 </main>

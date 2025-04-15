@@ -2,6 +2,8 @@
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Borrow;
+
     use asmov_copywriter_lib as copywriter_lib;
     use asmov_copywriter_lib_model::{self as model, prelude::*};
     use asmov_common_testing::{self as testing, prelude::*};
@@ -45,36 +47,33 @@ mod tests {
         for article_dir in article_dirs {
             let slug = article_dir.file_name().unwrap().to_string_lossy().to_string();
 
-            //json
-            let json_file = article_dir.join(model::Article::type_json_data_filename());
-            let json = std::fs::read_to_string(json_file).unwrap();
-            let article: model::Article = serde_json::from_str(&json).unwrap();
-
-            //test validation
-            article.validate().unwrap();
-
             //toml
             let toml_file = article_dir.join(model::Article::type_toml_data_filename());
             let toml = std::fs::read_to_string(toml_file).unwrap();
             let article_toml: model::Article = toml::from_str(&toml).unwrap();
 
-            // should fail for missing slug
-            assert!(article_toml.validate().is_err());
+            assert!(article_toml.validate().is_ok());
 
             //markdown
             let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
             let md_parser = pulldown_cmark::Parser::new(&md);
-
             let mut md_content = String::new();
             pulldown_cmark::html::push_html(&mut md_content, md_parser);
 
-            assert_eq!(slug, article.slug);
+            assert_eq!(slug, article_toml.slug);
             dbg!(slug);
             dbg!(&article_toml);
-            dbg!(&article);
             dbg!(&md_content);
 
-            articles.push((article, md_content))
+            let model_pack = model::ModelBundle {
+                meta: article_toml,
+                content: Content {
+                    html: Some(md_content),
+                    ..Default::default()
+                }
+            };
+
+            articles.push(model_pack)
         }
 
         let src_dir = fixture_input_dir.join("src");
@@ -92,8 +91,10 @@ mod tests {
 
         let index_html = handlebars.render_template(&index_hbs, &index_json).unwrap();
 
-        dbg!("index.html", &index_html);
-
+        println!("{}", index_json);
+        println!("{}", index_html);
+        let tmpfile = std::path::PathBuf::from("/tmp/test.html");
+        std::fs::write(&tmpfile, &index_html).unwrap();
 
         // create each article html
     }

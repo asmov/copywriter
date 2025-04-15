@@ -4,8 +4,8 @@ use validator;
 pub trait Model:
     std::fmt::Debug
     + Default
-    + serde::Serialize
-    + serde::de::DeserializeOwned
+    //+ serde::Serialize
+    //+ serde::de::DeserializeOwned
     + validator::Validate
 {
     fn slug(&self) -> &str;
@@ -75,44 +75,17 @@ pub trait ModelType: Model {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum ContentKind {
-    Html,
-    Markdown
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ModelBundle<M: Model> {
+    pub meta: M,
+    pub content: Content
 }
 
-pub trait Content {
-    const CONTENT_KIND: ContentKind;
-
-    fn content(&self) -> &str;
-
-    fn kind(&self) -> ContentKind {
-        Self::CONTENT_KIND
-    }
-}
-
-pub struct HtmlContent {
-    pub content: String
-}
-
-impl Content for HtmlContent {
-    const CONTENT_KIND: ContentKind = ContentKind::Html;
-
-    fn content(&self) -> &str {
-        &self.content
-    }
-}
-
-pub struct MarkdownContent {
-    pub content: String
-}
-
-impl Content for MarkdownContent {
-    const CONTENT_KIND: ContentKind = ContentKind::Markdown;
-
-    fn content(&self) -> &str {
-        &self.content
-    }
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+pub struct Content {
+    pub html: Option<String>,
+    pub quote_html: Option<String>,
+    pub markdown: Option<String>,
 }
 
 pub fn validate_slug(value: &String) -> Result<(), validator::ValidationError> {
