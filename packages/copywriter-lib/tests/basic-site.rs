@@ -26,6 +26,9 @@ mod tests {
         let config = copywriter_lib::Config {
             input_dir: test.fixture_dir().to_path_buf(),
             output_dir: test.temp_dir().to_path_buf(),
+        };
+
+        let site = copywriter_lib::Site {
             name: "Basic Site".to_string(),
             url: "http://localhost:8080".to_string(),
             owner: "John Doe".to_string(),
@@ -86,7 +89,7 @@ mod tests {
 
         let index_json = serde_json::json!({
             "articles": articles,
-            "site": config
+            "site": site
         });
 
         let index_html = handlebars.render_template(&index_hbs, &index_json).unwrap();
