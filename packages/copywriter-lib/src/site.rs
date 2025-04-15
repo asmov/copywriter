@@ -1,4 +1,5 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use anyhow::Context;
 use serde;
 use toml;
 
@@ -15,7 +16,8 @@ impl Site {
     pub const TOML_FILENAME: &'static str = "site.toml";
 
     pub fn read_toml<P: AsRef<Path>>(file: P) -> anyhow::Result<Self> {
-        let toml = std::fs::read_to_string(file)?;
+        let toml = std::fs::read_to_string(&file)
+            .with_context(|| format!("Unable to read site config: {}", file.as_ref().display()))?;
         let config = toml::from_str(&toml)?;
         Ok(config)
     }

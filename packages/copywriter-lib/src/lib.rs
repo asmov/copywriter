@@ -4,4 +4,4 @@ pub mod project;
 pub mod site;
 
 
-pub use crate::{config::*, site::*, modeling::*};
+pub use crate::{config::*, site::*, project::*, modeling::*};
