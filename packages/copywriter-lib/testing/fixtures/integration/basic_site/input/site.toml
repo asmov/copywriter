@@ -1,0 +1,5 @@
+name = "Basic Test Website"
+url = "http://localhost:8080"
+owner = "The Webmaster"
+owner_url = "http://127.0.0.1:8080"
+description = "This is a basic test website"

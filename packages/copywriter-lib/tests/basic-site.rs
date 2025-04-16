@@ -2,9 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Borrow;
-
-    use asmov_copywriter_lib as copywriter_lib;
+    use asmov_copywriter_lib::{self as copywriter_lib, Content};
     use asmov_copywriter_lib_model::{self as model, prelude::*};
     use asmov_common_testing::{self as testing, prelude::*};
 
@@ -29,18 +27,21 @@ mod tests {
         };
 
         let site = copywriter_lib::Site {
-            name: "Basic Site".to_string(),
+            name: "Basic Test Website".to_string(),
             url: "http://localhost:8080".to_string(),
-            owner: "John Doe".to_string(),
-            owner_url: "https://example.com".to_string(),
-            description: "A basic site".to_string(),
+            owner: "The Webmaster".to_string(),
+            owner_url: "http://127.0.0.1:8080".to_string(),
+            description: "This is a basic website".to_string(),
         };
 
         let fixture_input_dir = test.fixture_dir().join("input");
-        let publish_dir = fixture_input_dir.join("content").join("publish");
+        let content_dir = fixture_input_dir.join("content");
+
+        let mut registry = copywriter_lib::modeling::ModelTypeRegistry::new();
+        registry.register(model::Article::model_type());
 
         // parse articles
-        let articles_dir = publish_dir.join(model::Article::type_dirname());
+        let articles_dir = content_dir.join(model::Article::type_dirname());
         let article_dirs = articles_dir
             .read_dir().unwrap()
             .map(|entry| entry.unwrap().path())

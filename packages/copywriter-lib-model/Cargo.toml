@@ -12,5 +12,5 @@ keywords = ["asmov", "copywriter"]
 
 [dependencies]
 asmov-copywriter-lib = { version = "0.1", path = "../copywriter-lib" }
+garde = { version = "0.22", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
-validator = { version = "0.20", features = ["derive"] }
