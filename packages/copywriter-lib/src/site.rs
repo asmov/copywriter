@@ -3,13 +3,39 @@ use anyhow::Context;
 use serde;
 use toml;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+use crate::modeling::prelude::*;
+
+
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate)]
 pub struct Site {
+    #[garde(custom(valid_slug))]
+    pub slug: String,
+    #[garde(length(min = 1))]
     pub name: String,
+    #[garde(length(min = 1))]
+    pub subline: String,
+    #[garde(length(min = 1))]
     pub url: String,
-    pub owner: String,
+    #[garde(length(min = 1))]
+    pub owner_name: String,
+    #[garde(length(min = 1))]
     pub owner_url: String,
+    #[garde(length(min = 1))]
     pub description: String,
+}
+
+impl Model for Site {
+    fn slug(&self) -> &str {
+        &self.slug
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn subline(&self) -> &str {
+        &self.subline
+    }
 }
 
 impl Site {
@@ -22,4 +48,3 @@ impl Site {
         Ok(config)
     }
 }
-

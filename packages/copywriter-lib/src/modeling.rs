@@ -1,12 +1,29 @@
 use serde;
 use garde;
 
+pub mod prelude {
+    pub use super::{Model, ModelTypeAssoc, validation::*, garde::Validate};
+}
+
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+pub struct BasicModel {
+    pub name: String,
+    pub slug: String,
+    pub subline: String,
+}
+
 pub trait Model:
     std::fmt::Debug
     + Default
     + garde::Validate
 {
+    /// The unique identifier for data in this model. Must match the model's
+    /// name when passed through [slugify::slugify].
     fn slug(&self) -> &str;
+    /// Used in headers, titles, etc.
+    fn name(&self) -> &str;
+    /// Used in subheadlines, very short descriptions for lists, etc.
+    fn subline(&self) -> &str;
 }
 
 pub struct ModelTypeRegistry {
@@ -65,7 +82,7 @@ pub trait ModelDeserializer {
     }
 }
 
-pub trait ModelTypeAssoc: Model + ModelDeserializer {
+pub trait ModelTypeAssoc: Model /*+ ModelDeserializer*/ {
     const MODEL_NAME: &'static str;
     const MODEL_NAME_PLURAL: &'static str;
     const MODEL_SLUG: &'static str;
@@ -170,12 +187,14 @@ pub struct Content {
     pub markdown: Option<String>,
 }
 
-pub fn valid_slug(value: &String, _context: &()) -> garde::Result {
-    if value.is_empty() {
-        Err(garde::Error::new("empty slug"))
-    } else if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
-        Ok(())
-    } else {
-        Err(garde::Error::new("invalid slug"))
+pub mod validation {
+    pub fn valid_slug(value: &String, _context: &()) -> garde::Result {
+        if value.is_empty() {
+            Err(garde::Error::new("empty slug"))
+        } else if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+            Ok(())
+        } else {
+            Err(garde::Error::new("invalid slug"))
+        }
     }
 }

@@ -1,9 +1,39 @@
 //TODO: This needs to be moved to copywriter bin to avoid circular dependencies
 
+fn basic_model_from_markdown(md: pulldown_cmark::Parser) {
+    let mut h1 = None;
+    let mut h1_found = false;
+
+    for event in md {
+        match event {
+            pulldown_cmark::Event::Start(pulldown_cmark::Tag::Heading{level: pulldown_cmark::HeadingLevel::H1, .. }) => {
+                if !h1_found {
+                    h1 = Some(String::new());
+                }
+            },
+            pulldown_cmark::Event::Text(text) => {
+                if !h1_found {
+                    if let Some(ref mut h1) = h1 {
+                        h1.push_str(&text);
+                    }
+                }
+            },
+            pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Heading(pulldown_cmark::HeadingLevel::H1)) => {
+                if !h1_found && h1.is_some() {
+                    h1_found = true;
+                }
+            },
+
+            _ => {}
+        }
+
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use asmov_copywriter_lib::{self as copywriter_lib, Content};
-    use asmov_copywriter_lib_model::{self as model, prelude::*};
+    use asmov_copywriter_lib::{self as lib, modeling::prelude::*};
+    use asmov_copywriter_lib_model as model;
     use asmov_common_testing::{self as testing, prelude::*};
 
     static TESTING: testing::StaticModule = testing::module(|| {
@@ -21,15 +51,17 @@ mod tests {
             .using_temp_dir()
             .build();
 
-        let config = copywriter_lib::Config {
+        let _config = lib::Config {
             input_dir: test.fixture_dir().to_path_buf(),
             output_dir: test.temp_dir().to_path_buf(),
         };
 
-        let site = copywriter_lib::Site {
+        let site = lib::Site {
+            slug: "basic-test-website".to_string(),
             name: "Basic Test Website".to_string(),
+            subline: "This is a basic website".to_string(),
             url: "http://localhost:8080".to_string(),
-            owner: "The Webmaster".to_string(),
+            owner_name: "The Webmaster".to_string(),
             owner_url: "http://127.0.0.1:8080".to_string(),
             description: "This is a basic website".to_string(),
         };
@@ -37,7 +69,7 @@ mod tests {
         let fixture_input_dir = test.fixture_dir().join("input");
         let content_dir = fixture_input_dir.join("content");
 
-        let mut registry = copywriter_lib::modeling::ModelTypeRegistry::new();
+        let mut registry = lib::modeling::ModelTypeRegistry::new();
         registry.register(model::Article::model_type());
 
         // parse articles
@@ -51,27 +83,30 @@ mod tests {
         for article_dir in article_dirs {
             let slug = article_dir.file_name().unwrap().to_string_lossy().to_string();
 
-            //toml
+            // markdown
+            let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
+            let md_parser = pulldown_cmark::Parser::new(&md);
+            let md_basic_model = crate::basic_model_from_markdown(md_parser.clone());
+            let mut md_content = String::new();
+            pulldown_cmark::html::push_html(&mut md_content, md_parser);
+
+            // toml
             let toml_file = article_dir.join(model::Article::type_toml_data_filename());
             let toml = std::fs::read_to_string(toml_file).unwrap();
             let article_toml: model::Article = toml::from_str(&toml).unwrap();
 
             assert!(article_toml.validate().is_ok());
 
-            //markdown
-            let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
-            let md_parser = pulldown_cmark::Parser::new(&md);
-            let mut md_content = String::new();
-            pulldown_cmark::html::push_html(&mut md_content, md_parser);
+
 
             assert_eq!(slug, article_toml.slug);
             dbg!(slug);
             dbg!(&article_toml);
             dbg!(&md_content);
 
-            let model_pack = model::ModelBundle {
+            let model_pack = lib::ModelBundle {
                 meta: article_toml,
-                content: Content {
+                content: lib::Content {
                     html: Some(md_content),
                     ..Default::default()
                 }
@@ -86,7 +121,7 @@ mod tests {
         // create index.html
         let index_index_file = hbs_dir.join("index.hbs");
         let index_hbs = std::fs::read_to_string(index_index_file).unwrap();
-        let mut handlebars = handlebars::Handlebars::new();
+        let handlebars = handlebars::Handlebars::new();
 
         let index_json = serde_json::json!({
             "articles": articles,
@@ -97,8 +132,8 @@ mod tests {
 
         println!("{}", index_json);
         println!("{}", index_html);
-        let tmpfile = std::path::PathBuf::from("/tmp/test.html");
-        std::fs::write(&tmpfile, &index_html).unwrap();
+        //let tmpfile = std::path::PathBuf::from("/tmp/test.html");
+        //std::fs::write(&tmpfile, &index_html).unwrap();
 
         // create each article html
     }
