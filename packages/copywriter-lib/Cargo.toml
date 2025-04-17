@@ -24,3 +24,4 @@ toml = "0.8"
 [dev-dependencies]
 asmov-common-testing = "2"
 asmov-copywriter-lib-model = { path = "../copywriter-lib-model" }
+slugify = "0.1"

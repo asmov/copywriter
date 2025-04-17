@@ -1,33 +1,113 @@
 //TODO: This needs to be moved to copywriter bin to avoid circular dependencies
+#[macro_use] extern  crate  slugify;
+use slugify::slugify;
 
-fn basic_model_from_markdown(md: pulldown_cmark::Parser) {
-    let mut h1 = None;
-    let mut h1_found = false;
+fn parse_markdown_model(md: pulldown_cmark::Parser)
+-> anyhow::Result<(asmov_copywriter_lib::BasicModel, String)> {
+    let mut h1 = None; // holds the first h1
+    let mut h1_done = false; // TRUE: h1 is_some() and it's completely parsed
+    let mut after_h1 = false; // TRUE: the current event is first element after an h1 being parsed
+    let mut h1_blockquote = None; // holds the first blockquote after the first h1
+    let mut h1_blockquote_done = false; // TRUE: h1_blockquote is_some() and it's completely parsed
 
-    for event in md {
-        match event {
+    let md = md
+        .filter_map(|event| match event {
             pulldown_cmark::Event::Start(pulldown_cmark::Tag::Heading{level: pulldown_cmark::HeadingLevel::H1, .. }) => {
-                if !h1_found {
+                if !h1_done && h1.is_none() {
                     h1 = Some(String::new());
+                    None
+                } else if after_h1 {
+                    after_h1 = false;
+                    Some(event)
+                } else {
+                    Some(event)
                 }
             },
-            pulldown_cmark::Event::Text(text) => {
-                if !h1_found {
+            pulldown_cmark::Event::Start(pulldown_cmark::Tag::BlockQuote(None)) => {
+                if after_h1 {
+                    if h1_blockquote.is_none() {
+                        h1_blockquote = Some(String::new());
+                    } else {
+                        h1_blockquote = None; // don't allow multiple blockquotes >>
+                    }
+
+                    after_h1 = false;
+                    None
+                } else {
+                    Some(event)
+                }
+            },
+            pulldown_cmark::Event::Text(ref text) => {
+                if !h1_done {
                     if let Some(ref mut h1) = h1 {
                         h1.push_str(&text);
+                        None
+                    } else {
+                        Some(event)
                     }
+                } else if !h1_blockquote_done {
+                    if let Some(ref mut blockquote) = h1_blockquote {
+                        blockquote.push_str(&text);
+                        None
+                    } else {
+                        Some(event)
+                    }
+                } else if after_h1 {
+                    after_h1 = false;
+                    Some(event)
+                } else {
+                    Some(event)
                 }
             },
             pulldown_cmark::Event::End(pulldown_cmark::TagEnd::Heading(pulldown_cmark::HeadingLevel::H1)) => {
-                if !h1_found && h1.is_some() {
-                    h1_found = true;
+                if !h1_done && h1.is_some() {
+                    h1_done = true;
+                    after_h1 = true;
+                    None
+                } else if after_h1 {
+                    after_h1 = false;
+                    Some(event)
+                } else {
+                    Some(event)
                 }
             },
+            pulldown_cmark::Event::End(pulldown_cmark::TagEnd::BlockQuote(None)) => {
+                if after_h1 {
+                    after_h1 = false;
+                }
 
-            _ => {}
-        }
+                if !h1_blockquote_done {
+                    h1_blockquote_done = true;
+                    None
+                } else {
+                    Some(event)
+                }
+            }
+            _ => {
+                if after_h1 {
+                    after_h1 = false;
+                }
 
-    }
+                Some(event)
+            }
+        });
+
+    let mut html = String::new();
+    pulldown_cmark::html::push_html(&mut html, md);
+
+    let name = h1.unwrap_or_default();
+    let slug = slugify::slugify!(&name);
+    let subline = h1_blockquote.unwrap_or_default();
+
+    let basic_model = asmov_copywriter_lib::BasicModel {
+        name,
+        slug,
+        subline,
+    };
+
+    dbg!(&basic_model);
+
+    Ok((basic_model, html))
 }
 
 #[cfg(test)]
@@ -86,18 +166,27 @@ mod tests {
             // markdown
             let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
             let md_parser = pulldown_cmark::Parser::new(&md);
-            let md_basic_model = crate::basic_model_from_markdown(md_parser.clone());
-            let mut md_content = String::new();
-            pulldown_cmark::html::push_html(&mut md_content, md_parser);
+            let (md_basic_model, md_content) = crate::parse_markdown_model(md_parser).unwrap();
+
+            assert!(!md_basic_model.name.is_empty());
+            assert!(!md_basic_model.slug.is_empty());
 
             // toml
             let toml_file = article_dir.join(model::Article::type_toml_data_filename());
             let toml = std::fs::read_to_string(toml_file).unwrap();
-            let article_toml: model::Article = toml::from_str(&toml).unwrap();
+            let mut article_toml: model::Article = toml::from_str(&toml).unwrap();
+
+            if article_toml.slug.is_empty() {
+                article_toml.slug = slug.clone();
+            }
+            if article_toml.name.is_empty() {
+                article_toml.name = md_basic_model.name.clone();
+            }
+            if article_toml.subline.is_empty() {
+                article_toml.subline = md_basic_model.subline.clone();
+            }
 
             assert!(article_toml.validate().is_ok());
-
-
 
             assert_eq!(slug, article_toml.slug);
             dbg!(slug);
