@@ -1,15 +1,60 @@
 use serde;
 use garde;
+use validation::*;
 
 pub mod prelude {
-    pub use super::{Model, ModelTypeAssoc, validation::*, garde::Validate};
+    pub use super::{Model, ModelMut, ModelBase, ModelTypeAssoc, validation::*, garde::Validate};
 }
 
-#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
-pub struct BasicModel {
-    pub name: String,
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[serde(default)]
+pub struct ModelBase {
+    #[garde(custom(valid_slug))]
     pub slug: String,
+    #[garde(length(min = 1, max = 255))]
+    pub name: String,
+    #[garde(length(min = 1, max = 255))]
     pub subline: String,
+}
+
+impl ModelBase {
+    pub fn slug(&self) -> &str {
+        &self.slug
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn subline(&self) -> &str {
+        &self.subline
+    }
+
+    pub fn set_slug(&mut self, slug: String) {
+        self.slug = slug;
+    }
+
+    pub fn set_name(&mut self, name: String) {
+        self.name = name;
+    }
+
+    pub fn set_subline(&mut self, subline: String) {
+        self.subline = subline;
+    }
+
+    pub fn merge(mut self, other: ModelBase) -> Self {
+        if self.name.is_empty() {
+            self.name = other.name;
+        }
+        if self.slug.is_empty() {
+            self.slug = other.slug;
+        }
+        if self.subline.is_empty() {
+            self.subline = other.subline;
+        }
+
+        self
+    }
 }
 
 pub trait Model:
@@ -17,13 +62,56 @@ pub trait Model:
     + Default
     + garde::Validate
 {
+    fn model_base(&self) -> &ModelBase;
+
     /// The unique identifier for data in this model. Must match the model's
     /// name when passed through [slugify::slugify].
-    fn slug(&self) -> &str;
+    #[inline]
+    fn slug(&self) -> &str {
+        self.model_base().slug()
+    }
+
     /// Used in headers, titles, etc.
-    fn name(&self) -> &str;
+    #[inline]
+    fn name(&self) -> &str {
+        self.model_base().name()
+    }
+
     /// Used in subheadlines, very short descriptions for lists, etc.
-    fn subline(&self) -> &str;
+    #[inline]
+    fn subline(&self) -> &str {
+        self.model_base().subline()
+    }
+}
+
+pub trait ModelMut: Model {
+    fn model_base_mut(&mut self) -> &mut ModelBase;
+
+    fn set_name(&mut self, name: String) {
+        self.model_base_mut().set_name(name);
+    }
+
+    fn set_slug(&mut self, slug: String) {
+        self.model_base_mut().set_slug(slug);
+    }
+
+    fn set_subline(&mut self, subline: String) {
+        self.model_base_mut().set_subline(subline);
+    }
+
+    fn merge_base(mut self, other: ModelBase) -> Self {
+        if self.name().is_empty() {
+            self.set_name(other.name);
+        }
+        if self.slug().is_empty() {
+            self.set_slug(other.slug);
+        }
+        if self.subline().is_empty() {
+            self.set_subline(other.subline);
+        }
+
+        self
+    }
 }
 
 pub struct ModelTypeRegistry {

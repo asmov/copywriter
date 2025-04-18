@@ -7,7 +7,7 @@ use crate::*;
 /// The first blockquote after the first H1 is removed from the HTML and stored in [BasicModel::subline].
 /// All other headers are bumped up one level. Eg. H2 -> H1
 /// The [BasicModel::slug] is generated from [BasicModel::name].
-pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel, String)> {
+pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, String)> {
     let mut h1 = None; // holds the first h1
     let mut h1_done = false; // TRUE: h1 is_some() and it's completely parsed
     let mut after_h1 = false; // TRUE: the current event is first element after an h1 being parsed
@@ -17,12 +17,24 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel,
     let markdown = markdown
         .filter_map(|event| match event {
             md::Event::Start(md::Tag::Heading{level: md::HeadingLevel::H1, .. }) => {
+                if after_h1 {
+                    after_h1 = false;
+                }
+
                 if !h1_done && h1.is_none() {
                     h1 = Some(String::new());
                     None
-                } else if after_h1 {
-                    after_h1 = false;
+                } else {
                     Some(event)
+                }
+            },
+            md::Event::Start(md::Tag::Paragraph) | md::Event::End(md::TagEnd::Paragraph) => {
+                if after_h1 {
+                    after_h1 = false;
+                }
+
+                if !h1_blockquote_done && h1_blockquote.is_some() {
+                    None
                 } else {
                     Some(event)
                 }
@@ -42,6 +54,10 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel,
                 }
             },
             md::Event::Text(ref text) => {
+                if after_h1 {
+                    after_h1 = false;
+                }
+
                 if !h1_done {
                     if let Some(ref mut h1) = h1 {
                         h1.push_str(&text);
@@ -56,9 +72,6 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel,
                     } else {
                         Some(event)
                     }
-                } else if after_h1 {
-                    after_h1 = false;
-                    Some(event)
                 } else {
                     Some(event)
                 }
@@ -68,10 +81,11 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel,
                     h1_done = true;
                     after_h1 = true;
                     None
-                } else if after_h1 {
-                    after_h1 = false;
-                    Some(event)
                 } else {
+                    if after_h1 {
+                        after_h1 = false;
+                    }
+
                     Some(event)
                 }
             },
@@ -103,13 +117,11 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(BasicModel,
     let slug = slugify::slugify!(&name);
     let subline = h1_blockquote.unwrap_or_default();
 
-    let basic_model = BasicModel {
+    let basic_model = ModelBase {
         name,
         slug,
         subline,
     };
-
-    dbg!(&basic_model);
 
     Ok((basic_model, html))
 }
@@ -120,7 +132,7 @@ mod test {
 
     #[test]
     fn test_parse_markdown_model() {
-        let markdown = md::Parser::new(
+        const INPUT: &str =
 r"# Hello World
 > This is a subline
 
@@ -132,15 +144,44 @@ This *is* some [text](#Section-1).
 
 ### Subsection 1.2
 
-This is also **some** text.");
+This is also **some** text.";
 
+        const EXPECTED_HTML_UNALTERED: &str =
+r##"<h1>Hello World</h1>
+<blockquote>
+<p>This is a subline</p>
+</blockquote>
+<h2>Section 1</h2>
+<h3>Subsection 1.1</h3>
+<p>This <em>is</em> some <a href="#Section-1">text</a>.</p>
+<h3>Subsection 1.2</h3>
+<p>This is also <strong>some</strong> text.</p>
+"##;
+
+        const EXPECTED_HTML_PARSED: &str =
+r##"<h2>Section 1</h2>
+<h3>Subsection 1.1</h3>
+<p>This <em>is</em> some <a href="#Section-1">text</a>.</p>
+<h3>Subsection 1.2</h3>
+<p>This is also <strong>some</strong> text.</p>
+"##;
+
+        let expected_model: ModelBase = ModelBase {
+            name: "Hello World".to_string(),
+            slug: "hello-world".to_string(),
+            subline: "This is a subline".to_string(),
+        };
+
+        // sanity check: make sure markdown is being parsed normally as expected
+        let markdown = md::Parser::new(INPUT);
+        let mut unaltered_html = String::new();
+        md::html::push_html(&mut unaltered_html, markdown);
+        assert_eq!(EXPECTED_HTML_UNALTERED, unaltered_html);
+
+        let markdown = md::Parser::new(INPUT);
         let (basic_model, html) = parse_markdown_model(markdown).unwrap();
+        assert_eq!(EXPECTED_HTML_PARSED, html, "HTML should be parsed from Markdown");
 
-        dbg!(html);
-
-        assert_eq!(basic_model.name, "Hello World");
-        assert_eq!(basic_model.slug, "hello-world");
-        assert_eq!(basic_model.subline, "This is a subline");
-
+        assert_eq!(expected_model, basic_model, "Basic model should be parsed from Markdown");
     }
 }

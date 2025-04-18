@@ -27,9 +27,11 @@ mod tests {
         };
 
         let site = lib::Site {
-            slug: "basic-test-website".to_string(),
-            name: "Basic Test Website".to_string(),
-            subline: "This is a basic website".to_string(),
+            model_base: ModelBase {
+                slug: "basic-test-website".to_string(),
+                name: "Basic Test Website".to_string(),
+                subline: "This is a basic website".to_string(),
+            },
             url: "http://localhost:8080".to_string(),
             owner_name: "The Webmaster".to_string(),
             owner_url: "http://127.0.0.1:8080".to_string(),
@@ -56,35 +58,28 @@ mod tests {
             // markdown
             let md = std::fs::read_to_string(article_dir.join(model::Article::type_markdown_content_filename())).unwrap();
             let md_parser = pulldown_cmark::Parser::new(&md);
-            let (md_basic_model, md_content) = lib::parse_markdown_model(md_parser).unwrap();
+            let (md_model_base, md_content) = lib::parse_markdown_model(md_parser).unwrap();
 
-            assert!(!md_basic_model.name.is_empty());
-            assert!(!md_basic_model.slug.is_empty());
+            assert!(!md_model_base.name.is_empty());
+            assert!(!md_model_base.slug.is_empty());
+            assert!(!md_model_base.subline.is_empty());
 
             // toml
             let toml_file = article_dir.join(model::Article::type_toml_data_filename());
             let toml = std::fs::read_to_string(toml_file).unwrap();
-            let mut article_toml: model::Article = toml::from_str(&toml).unwrap();
+            let article_toml: model::Article = toml::from_str(&toml).unwrap();
+            let article = article_toml.merge_base(md_model_base);
 
-            if article_toml.slug.is_empty() {
-                article_toml.slug = slug.clone();
-            }
-            if article_toml.name.is_empty() {
-                article_toml.name = md_basic_model.name.clone();
-            }
-            if article_toml.subline.is_empty() {
-                article_toml.subline = md_basic_model.subline.clone();
-            }
+            dbg!(&article);
+            assert!(article.validate().is_ok());
 
-            assert!(article_toml.validate().is_ok());
-
-            assert_eq!(slug, article_toml.slug);
+            assert_eq!(slug, article.slug());
             dbg!(slug);
-            dbg!(&article_toml);
+            dbg!(&article);
             dbg!(&md_content);
 
             let model_pack = lib::ModelBundle {
-                meta: article_toml,
+                meta: article,
                 content: lib::Content {
                     html: Some(md_content),
                     ..Default::default()

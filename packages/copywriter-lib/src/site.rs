@@ -3,17 +3,15 @@ use anyhow::Context;
 use serde;
 use toml;
 
-use crate::modeling::prelude::*;
+use crate::{modeling::prelude::*, ModelBase};
 
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[serde(default)]
 pub struct Site {
-    #[garde(custom(valid_slug))]
-    pub slug: String,
-    #[garde(length(min = 1))]
-    pub name: String,
-    #[garde(length(min = 1))]
-    pub subline: String,
+    #[serde(flatten)]
+    #[garde(dive)]
+    pub model_base: ModelBase,
     #[garde(length(min = 1))]
     pub url: String,
     #[garde(length(min = 1))]
@@ -25,16 +23,8 @@ pub struct Site {
 }
 
 impl Model for Site {
-    fn slug(&self) -> &str {
-        &self.slug
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn subline(&self) -> &str {
-        &self.subline
+    fn model_base(&self) -> &ModelBase {
+        &self.model_base
     }
 }
 
