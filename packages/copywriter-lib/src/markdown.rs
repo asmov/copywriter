@@ -35,7 +35,6 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, 
                 }
 
                 let level = md::HeadingLevel::try_from(level_ord).expect("Invalid heading level");
-
                 Some(md::Event::Start(md::Tag::Heading{level, id, classes, attrs }))
             },
             md::Event::Start(md::Tag::Paragraph) | md::Event::End(md::TagEnd::Paragraph) => {
