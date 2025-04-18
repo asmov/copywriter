@@ -1,7 +1,7 @@
 [package]
 name = "asmov-copywriter-lib"
+metadata.era = "1"
 version = "0.1.0"
-edition = "2024"
 description = "Library for Asmov Copywriter"
 authors = ["Asmov LLC <development.pub@asmov.software>"]
 license = "AGPL-3.0-or-later"
@@ -9,6 +9,7 @@ repository = "https://github.com/asmov/copywriter"
 homepage = "https://asmov.software"
 categories = []
 keywords = ["asmov", "copywriter"]
+edition = "2024"
 
 [dependencies]
 anyhow = "1"

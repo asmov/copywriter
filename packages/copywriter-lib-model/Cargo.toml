@@ -1,5 +1,6 @@
 [package]
 name = "asmov-copywriter-lib-model"
+metadata.era = "1"
 version = "0.1.0"
 edition = "2024"
 description = "Model library for Asmov Copywriter"
