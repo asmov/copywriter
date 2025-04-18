@@ -1,0 +1,1 @@
+article = "SELECT * FROM articles WHERE slug = :model_base.slug LIMIT 1"

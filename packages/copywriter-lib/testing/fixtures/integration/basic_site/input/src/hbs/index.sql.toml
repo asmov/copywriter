@@ -1,0 +1,1 @@
+articles = "SELECT * FROM articles ORDER BY published_timestamp ASC LIMIT 20"
