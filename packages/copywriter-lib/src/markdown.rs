@@ -151,7 +151,7 @@ mod test {
     #[test]
     fn test_parse_markdown_model() {
         const INPUT: &str =
-r"# Hello World
+r"# Hello World?
 > This is a subline
 
 ## Section 1
@@ -165,7 +165,7 @@ This *is* some [text](#Section-1).
 This is also **some** text.";
 
         const EXPECTED_HTML_UNALTERED: &str =
-r##"<h1>Hello World</h1>
+r##"<h1>Hello World?</h1>
 <blockquote>
 <p>This is a subline</p>
 </blockquote>
@@ -185,7 +185,7 @@ r##"<h1>Section 1</h1>
 "##;
 
         let expected_model: ModelBase = ModelBase {
-            name: "Hello World".to_string(),
+            name: "Hello World?".to_string(),
             slug: "hello-world".to_string(),
             subline: "This is a subline".to_string(),
         };
@@ -194,10 +194,10 @@ r##"<h1>Section 1</h1>
         let markdown = md::Parser::new(INPUT);
         let mut unaltered_html = String::new();
         md::html::push_html(&mut unaltered_html, markdown);
-        assert_eq!(EXPECTED_HTML_UNALTERED, unaltered_html);
+        assert_eq!(EXPECTED_HTML_UNALTERED, unaltered_html, "Unaltered HTML should be parsed");
 
         let markdown = md::Parser::new(INPUT);
-        let (basic_model, html) = parse_markdown_model(markdown).unwrap();
+        let (basic_model, html) = parse_markdown_model(markdown).expect("HTML should be parsed from Markdown");
         assert_eq!(EXPECTED_HTML_PARSED, html, "HTML should be parsed from Markdown");
 
         assert_eq!(expected_model, basic_model, "Basic model should be parsed from Markdown");
