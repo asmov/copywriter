@@ -28,6 +28,16 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, 
                     Some(event)
                 }
             },
+            md::Event::Start(md::Tag::Heading{level, id, classes, attrs }) => {
+                let mut level_ord = level as usize;
+                if level_ord > 1 {
+                    level_ord -= 1;
+                }
+
+                let level = md::HeadingLevel::try_from(level_ord).expect("Invalid heading level");
+
+                Some(md::Event::Start(md::Tag::Heading{level, id, classes, attrs }))
+            },
             md::Event::Start(md::Tag::Paragraph) | md::Event::End(md::TagEnd::Paragraph) => {
                 if after_h1 {
                     after_h1 = false;
@@ -88,6 +98,15 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, 
 
                     Some(event)
                 }
+            },
+            md::Event::End(md::TagEnd::Heading(level)) => {
+                let mut level_ord = level as usize;
+                if level_ord > 1 {
+                    level_ord -= 1;
+                }
+
+                let level = md::HeadingLevel::try_from(level_ord).expect("Invalid heading level");
+                Some(md::Event::End(md::TagEnd::Heading(level)))
             },
             md::Event::End(md::TagEnd::BlockQuote(None)) => {
                 if after_h1 {
@@ -159,10 +178,10 @@ r##"<h1>Hello World</h1>
 "##;
 
         const EXPECTED_HTML_PARSED: &str =
-r##"<h2>Section 1</h2>
-<h3>Subsection 1.1</h3>
+r##"<h1>Section 1</h1>
+<h2>Subsection 1.1</h2>
 <p>This <em>is</em> some <a href="#Section-1">text</a>.</p>
-<h3>Subsection 1.2</h3>
+<h2>Subsection 1.2</h2>
 <p>This is also <strong>some</strong> text.</p>
 "##;
 
