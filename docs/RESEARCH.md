@@ -76,3 +76,70 @@ The technology stack for each content creator:
 - Git
 - `copywriter`
 - Text editor
+
+## Templates
+
+### Template Repositories should be:
+- A Git repository, limited to one per author, with the main branch named `release`
+- A Cargo workspace, with each of the author's templates in their own package (crate)
+- A final artifact, that doesn't include source-code that needs to be built
+- Structured the same as community templates (below), with whatever LICENSE- file they want:
+  - LICENSE-RESERVED.txt
+  - LICENSE-MIT.txt
+  - LICENSE.BSD-3.txt
+  - LICENSE-AGPL-3.txt
+  - etc. Refer to [SPDX](https://spdx.org/licenses/)
+  
+Each template package should keep its own version, using SemVer.
+
+### Community Template Repositories should be:
+- Licensed under the MIT license 
+- 
+```
+packages/
+    README.md
+    LICENSE-MIT.txt
+    author-name/
+        template-name/
+            README.md
+            LICENSE-MIT.txt
+            src/
+                css/
+                hbs/
+                js/
+                images/
+```
+
+The files in a template's `src/` are copied to the website's `pkg/author-name/template-name`.
+
+For example, a css file would live at something like:  
+`http://website-url/pkg/author-name/template-name/css/style-name.css`
+
+Exception to template copying: Handlebars templates in `src/hbs`
+
+### Asmov Community Template repository
+Contains a manifest that points to other third-party community template repositores.
+
+Example `manifest.toml`:
+```
+[[author]]
+name = "author-name-1"
+repository = "https:://github.com/github-username/repository-name"
+
+[[author]]
+name = "author-name-2
+repository = "https:://gitlab.com/gitlab-username/repository-name"
+```
+
+Because community template repositories are standardized, enumerating templates is straigforward:
+1. Read the workspace `Cargo.toml` for packages. 
+2. Read the package `Cargo.toml` for name, version, description, keywords, and website.
+
+To be listed, community template packages must have:
+- A major version of 1 or greater
+- A `package.metadata.era` of 1 or greater
+
+A package's version will be displayed with it's era. E.g, `v1:18.3.4.rc-4`
+
+This ensures that proper semantic versioning is fully taken advantage of while keeping the concept
+of an edition (we use `era` to avoid confusion with cargo).
