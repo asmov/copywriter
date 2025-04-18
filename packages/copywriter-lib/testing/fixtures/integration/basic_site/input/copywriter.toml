@@ -1,2 +1,18 @@
 input_dir = "."
 output_dir = "$TMPDIR/www-basic-site"
+
+[template.source]
+type = "git"
+version = "0.1"
+
+[template.source.git]
+repository = "https://github.com/asmov/copywriter-template-standard.git"
+tag = "v0.1"
+
+#[template.source]
+#type = "crate"
+#subdir = "asmov/standard"
+
+#[template.source.crate]
+#name = "asmov-copywriter-template-standard"
+#version = "0.1"
