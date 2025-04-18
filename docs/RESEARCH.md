@@ -139,7 +139,8 @@ To be listed, community template packages must have:
 - A major version of 1 or greater
 - A `package.metadata.era` of 1 or greater
 
-A package's version will be displayed with it's era. E.g, `v1:18.3.4.rc-4`
+A package's version will be displayed with it's era.  
+E.g: `v1:18.3.4.rc-4` or `e1v18.3.4.rc-4` 
 
 This ensures that proper semantic versioning is fully taken advantage of while keeping the concept
 of an edition (we use `era` to avoid confusion with cargo).
