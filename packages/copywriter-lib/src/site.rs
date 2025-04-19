@@ -1,6 +1,7 @@
 use std::path::Path;
 use anyhow::Context;
 use serde;
+use garde;
 use toml;
 
 use crate::{modeling::prelude::*, ModelBase};
@@ -25,6 +26,12 @@ pub struct Site {
 impl Model for Site {
     fn model_base(&self) -> &ModelBase {
         &self.model_base
+    }
+}
+
+impl ModelMut for Site {
+    fn model_base_mut(&mut self) -> &mut ModelBase {
+        &mut self.model_base
     }
 }
 

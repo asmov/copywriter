@@ -11,6 +11,7 @@ categories = []
 keywords = ["asmov", "copywriter"]
 
 [dependencies]
+anyhow = "1.0.98"
 asmov-copywriter-lib = { version = "0.1", path = "../copywriter-lib" }
 garde = { version = "0.22", features = ["full"] }
 serde = { version = "1", features = ["derive"] }

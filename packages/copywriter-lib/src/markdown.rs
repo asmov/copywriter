@@ -1,4 +1,3 @@
-use slugify::slugify;
 use pulldown_cmark as md;
 use crate::*;
 

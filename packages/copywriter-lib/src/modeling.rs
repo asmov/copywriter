@@ -9,7 +9,7 @@ pub mod prelude {
     pub use super::{Model, ModelMut, ModelBase, ModelTypeAssoc, validation::*, garde::Validate};
 }
 
-#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
 #[serde(default)]
 #[garde(transparent)]
 pub struct Slug(
@@ -43,10 +43,11 @@ impl From<&str> for Slug {
     }
 }
 
-#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
 #[serde(default)]
 pub struct ModelBase {
     #[garde(dive)]
+    #[sqlx(flatten)]
     pub slug: Slug,
     #[garde(length(min = 1, max = 255))]
     pub name: String,

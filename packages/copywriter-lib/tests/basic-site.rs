@@ -5,6 +5,7 @@ mod tests {
     use asmov_copywriter_lib::{self as lib, modeling::prelude::*};
     use asmov_copywriter_lib_model as model;
     use asmov_common_testing::{self as testing, prelude::*};
+    use futures::executor::block_on;
 
     static TESTING: testing::StaticModule = testing::module(|| {
         testing::integration(module_path!())
@@ -52,7 +53,10 @@ mod tests {
             .collect::<Vec<_>>();
 
         // init sqlx
-        let pool = lib::sql::connect_db().unwrap();
+        let pool = block_on(lib::sql::connect_db()).unwrap();
+        block_on(model::sql::migrate_db(&pool)).unwrap();
+        let article_sql: model::Article = block_on(sqlx::query_as("SELECT * FROM articles WHERE slug = 'test-article' LIMIT 1").fetch_one(&pool)).unwrap();
+        dbg!(&article_sql);
 
         let mut articles = Vec::new();
         for article_dir in article_dirs {

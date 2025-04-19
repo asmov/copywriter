@@ -13,7 +13,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
-garde = "0.22"
+garde = { version = "0.22", features = ["full"] }
 handlebars = { version = "6", features = ["walkdir", "dir_source"] }
 pulldown-cmark = { version = "0.13", features = ["serde"] }
 pulldown-cmark-toc = "0.7"
@@ -21,8 +21,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
 slugify = "0.1"
-sqlx = { version = "0.8.5", features = ["sqlite"] }
+sqlx = { version = "0.8.5", features = ["runtime-async-std", "sqlite"] }
 tokio = { version = "1.44.2", features = ["rt", "rt-multi-thread"] }
+futures = "0.3.31"
 
 [dev-dependencies]
 asmov-common-testing = "2"
