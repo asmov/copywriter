@@ -63,14 +63,20 @@ impl Article {
         Ok(m)
     }
 
-    pub async fn db_insert(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
-        sqlx::query(r"INSERT INTO articles (
+    pub async fn db_upsert(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
+        sqlx::query(r"
+            INSERT INTO articles (
                 created_time,
                 modified_time,
                 slug,
                 name,
                 subline,
-                author_slug) VALUES (?,?,?,?,?,?)")
+                author_slug) VALUES (?,?,?,?,?,?)
+            ON CONFLICT (slug) DO UPDATE SET
+                modified_time = excluded.modified_time,
+                subline = excluded.subline,
+                author_slug = excluded.author_slug
+        ")
         .bind(self.created_time())
         .bind(self.modified_time())
         .bind(self.slug())

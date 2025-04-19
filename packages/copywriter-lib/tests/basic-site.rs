@@ -59,7 +59,7 @@ mod tests {
             .collect::<Vec<_>>();
 
         // init sqlx
-        let pool = block_on(lib::sql::connect_db()).unwrap();
+        let pool = block_on(lib::sql::connect_local_db()).unwrap();
         block_on(model::sql::migrate_db(&pool)).unwrap();
         let article_sql: model::Article = block_on(sqlx::query_as("SELECT * FROM articles WHERE slug = 'test-article' LIMIT 1").fetch_one(&pool)).unwrap();
         dbg!(&article_sql);
@@ -90,7 +90,7 @@ mod tests {
             assert!(article.validate().is_ok());
 
             // check insert
-            block_on(article.db_insert(&pool)).unwrap();
+            block_on(article.db_upsert(&pool)).unwrap();
             let article_sql = block_on(model::Article::db_query(&pool, &slug)).unwrap();
             assert_eq!(article, article_sql, "Article from SQL should match");
 
@@ -122,7 +122,7 @@ mod tests {
 
         println!("{}", index_json);
         println!("{}", index_html);
-        block_on(lib::dump_db(&pool)).unwrap();
+        lib::cmd::sqlite3::dump_db("/tmp/copywriter.db", "/tmp/site.sql").unwrap();
         //let tmpfile = std::path::PathBuf::from("/tmp/test.html");
         //std::fs::write(&tmpfile, &index_html).unwrap();
 
