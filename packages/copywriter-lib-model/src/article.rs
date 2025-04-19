@@ -1,13 +1,15 @@
 use asmov_copywriter_lib::{ModelBase, ModelMut};
 use serde;
 use garde;
+use sqlx;
 use crate::modeling::prelude::*;
 use crate::*;
 
-#[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
 #[serde(default)]
 pub struct Article {
     #[serde(flatten)]
+    #[sqlx(flatten)]
     #[garde(dive)]
     pub model_base: ModelBase,
     #[garde(custom(valid_slug))]
@@ -36,3 +38,18 @@ impl ModelTypeAssoc for Article {
 }
 
 //impl ModelDeserializer for Article {}
+impl Article {
+    const SQL_SCHEMA: &str = r#"
+        CREATE TABLE IF NOT EXISTS articles (
+            slug TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            subline TEXT NOT NULL,
+            author_slug TEXT NOT NULL,
+            published_timestamp TEXT NOT NULL,
+        );
+    "#;
+
+    pub fn sql_schema() -> &'static str {
+        Self::SQL_SCHEMA
+    }
+}

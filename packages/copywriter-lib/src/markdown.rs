@@ -132,7 +132,7 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, 
     md::html::push_html(&mut html, markdown);
 
     let name = h1.unwrap_or_default();
-    let slug = slugify::slugify!(&name);
+    let slug = Slug::from(&name);
     let subline = h1_blockquote.unwrap_or_default();
 
     let basic_model = ModelBase {
@@ -186,7 +186,7 @@ r##"<h1>Section 1</h1>
 
         let expected_model: ModelBase = ModelBase {
             name: "Hello World?".to_string(),
-            slug: "hello-world".to_string(),
+            slug: "hello-world".into(),
             subline: "This is a subline".to_string(),
         };
 

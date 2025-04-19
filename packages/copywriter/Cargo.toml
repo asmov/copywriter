@@ -1,6 +1,5 @@
 [package]
 name = "asmov-copywriter"
-metadata.era = "1"
 version = "0.1.0"
 description = "Website builder using Markdown and Handlebars"
 authors = ["Asmov LLC <development.pub@asmov.software>"]

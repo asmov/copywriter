@@ -1,3 +1,6 @@
+use std::ops::{Deref, DerefMut};
+use slugify::slugify;
+
 use serde;
 use garde;
 use validation::*;
@@ -8,9 +11,43 @@ pub mod prelude {
 
 #[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate)]
 #[serde(default)]
-pub struct ModelBase {
+#[garde(transparent)]
+pub struct Slug(
     #[garde(custom(valid_slug))]
-    pub slug: String,
+    String
+);
+
+impl Deref for Slug {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Slug {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl From<&String> for Slug {
+    fn from(value: &String) -> Self {
+        Self::from(value.as_str())
+    }
+}
+
+impl From<&str> for Slug {
+    fn from(value: &str) -> Self {
+        Slug(slugify::slugify!(value))
+    }
+}
+
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate)]
+#[serde(default)]
+pub struct ModelBase {
+    #[garde(dive)]
+    pub slug: Slug,
     #[garde(length(min = 1, max = 255))]
     pub name: String,
     #[garde(length(min = 1, max = 255))]
@@ -30,7 +67,7 @@ impl ModelBase {
         &self.subline
     }
 
-    pub fn set_slug(&mut self, slug: String) {
+    pub fn set_slug(&mut self, slug: Slug) {
         self.slug = slug;
     }
 
@@ -91,7 +128,7 @@ pub trait ModelMut: Model {
         self.model_base_mut().set_name(name);
     }
 
-    fn set_slug(&mut self, slug: String) {
+    fn set_slug(&mut self, slug: Slug) {
         self.model_base_mut().set_slug(slug);
     }
 
@@ -203,7 +240,7 @@ pub trait ModelTypeAssoc: Model /*+ ModelDeserializer*/ {
     }
 
     fn model_dirname(&self) -> &'static str {
-        &Self::MODEL_SLUG_PLURAL
+        &Self::MODEL_SLUG
     }
     fn model_toml_data_filename(&self) -> String {
         format!("{}.toml", Self::MODEL_SLUG)
@@ -246,7 +283,7 @@ pub trait ModelTypeAssoc: Model /*+ ModelDeserializer*/ {
     }
 
     fn type_dirname() -> &'static str {
-        &Self::MODEL_SLUG_PLURAL
+        &Self::MODEL_SLUG
     }
 
     fn type_toml_data_filename() -> String {

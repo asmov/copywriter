@@ -1,6 +1,5 @@
 [package]
 name = "asmov-copywriter-lib"
-metadata.era = "1"
 version = "0.1.0"
 description = "Library for Asmov Copywriter"
 authors = ["Asmov LLC <development.pub@asmov.software>"]
@@ -22,6 +21,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
 slugify = "0.1"
+sqlx = { version = "0.8.5", features = ["sqlite"] }
+tokio = { version = "1.44.2", features = ["rt", "rt-multi-thread"] }
 
 [dev-dependencies]
 asmov-common-testing = "2"

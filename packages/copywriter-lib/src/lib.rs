@@ -3,6 +3,7 @@ pub mod config;
 pub mod project;
 pub mod site;
 pub mod markdown;
+pub mod sql;
 
 pub use crate::{
     modeling::*,
@@ -10,4 +11,5 @@ pub use crate::{
     config::*,
     project::*,
     site::*,
+    sql::*,
 };

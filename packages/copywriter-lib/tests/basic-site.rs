@@ -28,7 +28,7 @@ mod tests {
 
         let site = lib::Site {
             model_base: ModelBase {
-                slug: "basic-test-website".to_string(),
+                slug: "basic-test-website".into(),
                 name: "Basic Test Website".to_string(),
                 subline: "This is a basic website".to_string(),
             },
@@ -50,6 +50,9 @@ mod tests {
             .read_dir().unwrap()
             .map(|entry| entry.unwrap().path())
             .collect::<Vec<_>>();
+
+        // init sqlx
+        let pool = lib::sql::connect_db().unwrap();
 
         let mut articles = Vec::new();
         for article_dir in article_dirs {
