@@ -4,6 +4,7 @@ pub mod project;
 pub mod site;
 pub mod markdown;
 pub mod sql;
+pub mod cmd;
 
 pub use crate::{
     modeling::*,

@@ -26,16 +26,16 @@
     <article>
         <header>
             <img alt="topic" src="./images/icons/topic.svg" />
-            <h1><a href="article/{{article.meta.slug}}.html">{{article.meta.name}}</a></h1>
-            <h2>{{article.meta.subline}}</h2>
+            <h1><a href="article/{{article.model.slug}}.html">{{article.model.name}}</a></h1>
+            <h2>{{article.model.subline}}</h2>
         </header>
         <section>
-            <blockquote cite="article/{{article.meta.slug}}.html">{{{article.content.html}}}</blockquote>
+            <blockquote cite="article/{{article.model.slug}}.html">{{{article.content.html}}}</blockquote>
         </section>
         <footer>
-            <img class="author" alt="{{article.meta.author_slug}}" src="./images/team/{{article.meta.author_slug}}.jpeg" />
-            <p class="author">{{article.meta.author_slug}}</p>
-            <p class="published"><time datetime="{{article.meta.published_timestamp}}">{{article.meta.published_timestamp}}</time></p>
+            <img class="author" alt="{{article.model.author_slug}}" src="./images/team/{{article.model.author_slug}}.jpeg" />
+            <p class="author">{{article.model.author_slug}}</p>
+            <p class="published"><time datetime="{{article.model.created_time}}">{{article.model.created_time}}</time></p>
         </footer>
     </article>
     {{/with}}

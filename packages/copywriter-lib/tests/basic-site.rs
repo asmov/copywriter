@@ -89,14 +89,13 @@ mod tests {
             assert_eq!(slug, article.slug());
             assert!(article.validate().is_ok());
 
-            block_on(article.db_insert(&pool)).unwrap();
-
             // check insert
+            block_on(article.db_insert(&pool)).unwrap();
             let article_sql = block_on(model::Article::db_query(&pool, &slug)).unwrap();
             assert_eq!(article, article_sql, "Article from SQL should match");
 
             let model_pack = lib::ModelBundle {
-                meta: article,
+                model: article,
                 content: lib::Content {
                     html: Some(md_content),
                     ..Default::default()
@@ -123,6 +122,7 @@ mod tests {
 
         println!("{}", index_json);
         println!("{}", index_html);
+        block_on(lib::dump_db(&pool)).unwrap();
         //let tmpfile = std::path::PathBuf::from("/tmp/test.html");
         //std::fs::write(&tmpfile, &index_html).unwrap();
 

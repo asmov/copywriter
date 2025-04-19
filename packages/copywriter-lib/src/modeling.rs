@@ -370,7 +370,7 @@ pub trait ModelTypeAssoc: Model /*+ ModelDeserializer*/ {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ModelBundle<M: Model> {
-    pub meta: M,
+    pub model: M,
     pub content: Content
 }
 
