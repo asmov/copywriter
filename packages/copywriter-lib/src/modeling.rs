@@ -9,9 +9,8 @@ pub mod prelude {
     pub use super::{Model, ModelMut, ModelBase, ModelTypeAssoc, validation::*, garde::Validate};
 }
 
-#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
-#[serde(default)]
-#[garde(transparent)]
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::Type)]
+#[sqlx(transparent)]
 pub struct Slug(
     #[garde(custom(valid_slug))]
     String
@@ -47,7 +46,6 @@ impl From<&str> for Slug {
 #[serde(default)]
 pub struct ModelBase {
     #[garde(dive)]
-    #[sqlx(flatten)]
     pub slug: Slug,
     #[garde(length(min = 1, max = 255))]
     pub name: String,

@@ -78,12 +78,16 @@ mod tests {
             let article = article_toml.merge_base(md_model_base);
 
             dbg!(&article);
-            assert!(article.validate().is_ok());
+            dbg!(&md_content);
 
             assert_eq!(slug, article.slug());
-            dbg!(slug);
-            dbg!(&article);
-            dbg!(&md_content);
+            assert!(article.validate().is_ok());
+
+            block_on(article.db_insert(&pool)).unwrap();
+
+            // check insert
+            let article_sql = block_on(model::Article::db_query(&pool, &slug)).unwrap();
+            assert_eq!(article, article_sql, "Article from SQL should match");
 
             let model_pack = lib::ModelBundle {
                 meta: article,

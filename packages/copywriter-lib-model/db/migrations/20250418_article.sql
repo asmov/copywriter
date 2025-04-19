@@ -6,5 +6,4 @@ CREATE TABLE IF NOT EXISTS articles (
     published_timestamp TEXT NOT NULL
 );
 
-INSERT INTO articles (slug, name, subline, author_slug, published_timestamp)
-VALUES ('test-article', 'Test Article', 'This is a test article', 'test-author', '2023-01-01');
+INSERT INTO articles (slug, name, subline, author_slug, published_timestamp) VALUES ('test-article', 'Test Article', 'This is a test article', 'test-author', '2023-01-01');

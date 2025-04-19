@@ -1,19 +1,10 @@
-use sqlx::{self, Executor};
+use sqlx;
 use anyhow;
 
 pub async fn migrate_db(pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
-    //sqlx::migrate!("db/migrations")
-    //    .run(pool)
-    //    .await?;
-    pool.execute(r#"CREATE TABLE IF NOT EXISTS articles (
-        slug TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        subline TEXT NOT NULL,
-        author_slug TEXT NOT NULL,
-        published_timestamp TEXT NOT NULL
-    );
-
-    INSERT INTO articles (slug, name, subline, author_slug, published_timestamp) VALUES ('test-article', 'Test Article', 'This is a test article', 'test-author', '2023-01-01');"#).await?;
+    sqlx::migrate!("db/migrations")
+        .run(pool)
+        .await?;
 
     Ok(())
 }

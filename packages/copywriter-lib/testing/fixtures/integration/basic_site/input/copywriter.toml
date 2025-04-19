@@ -2,16 +2,19 @@ input_dir = "."
 output_dir = "$TMPDIR/www-basic-site"
 
 [[pkg]]
+kind = "template"
 repository = "https://github.com/asmov/copywriter-templates.git"
 package = "asmov/std"
 version = "1:0.1"
 
 [[pkg]]
+kind = "template"
 repository = "https://github.com/asmov/copywriter-templates.git"
 package = "asmov/article"
 version = "1:0.1"
 
 [[pkg]]
+kind = "template"
 repository = "https://github.com/asmov/copywriter-templates.git"
 package = "asmov/product"
 version = "1:0.1"

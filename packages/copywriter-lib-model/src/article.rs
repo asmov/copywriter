@@ -1,19 +1,19 @@
-use asmov_copywriter_lib::{ModelBase, ModelMut};
+use asmov_copywriter_lib::{Slug, ModelBase};
 use serde;
 use garde;
 use sqlx;
 use crate::modeling::prelude::*;
 use crate::*;
 
-#[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
 #[serde(default)]
 pub struct Article {
     #[serde(flatten)]
     #[sqlx(flatten)]
     #[garde(dive)]
     pub model_base: ModelBase,
-    #[garde(custom(valid_slug))]
-    pub author_slug: String,
+    #[garde(dive)]
+    pub author_slug: Slug,
     #[garde(length(min = 1))]
     pub published_timestamp: String,
 }
@@ -39,17 +39,35 @@ impl ModelTypeAssoc for Article {
 
 //impl ModelDeserializer for Article {}
 impl Article {
-    const SQL_SCHEMA: &str = r#"
-        CREATE TABLE IF NOT EXISTS articles (
-            slug TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            subline TEXT NOT NULL,
-            author_slug TEXT NOT NULL,
-            published_timestamp TEXT NOT NULL,
-        );
-    "#;
+    pub async fn db_query(pool: &sqlx::SqlitePool, slug: &str) -> anyhow::Result<Self> {
+        let m: Self = sqlx::query_as("SELECT * FROM articles WHERE slug = ? LIMIT 1")
+            .bind(slug)
+            .fetch_one(pool).await?;
 
-    pub fn sql_schema() -> &'static str {
-        Self::SQL_SCHEMA
+        Ok(m)
+    }
+
+    pub async fn db_insert(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
+        sqlx::query("INSERT INTO articles (slug, name, subline, author_slug, published_timestamp) VALUES (?, ?, ?, ?, ?)")
+        .bind(self.model_base.slug())
+        .bind(self.model_base.name())
+        .bind(self.model_base.subline())
+        .bind(self.author_slug.as_str())
+        .bind(&self.published_timestamp)
+        .execute(pool).await?;
+
+        Ok(())
+    }
+
+    pub async fn db_update(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
+        sqlx::query("UPDATE articles SET name = ?, subline = ?, author_slug = ?, published_timestamp = ? WHERE slug = ? LIMIT 1")
+        .bind(self.model_base.name())
+        .bind(self.model_base.subline())
+        .bind(self.author_slug.as_str())
+        .bind(&self.published_timestamp)
+        .bind(self.model_base.slug())
+        .execute(pool).await?;
+
+        Ok(())
     }
 }
