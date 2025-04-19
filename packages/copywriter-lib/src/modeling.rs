@@ -5,8 +5,31 @@ use serde;
 use garde;
 use validation::*;
 
+#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::Type)]
+#[sqlx(transparent)]
+pub struct Timestamp(
+    #[garde(skip)]
+    #[sqlx()]
+    chrono::DateTime<chrono::Utc>);
+
+impl Timestamp {
+    pub fn new(year: i32, month: u32, day: u32, hour: u32, minute: u32, second: u32, nanosecond: u32) -> Option<Timestamp> {
+        Some(Timestamp(chrono::NaiveDate::from_ymd_opt(year, month, day)?
+            .and_hms_nano_opt(hour, minute, second, nanosecond)?
+            .and_utc()))
+    }
+
+    pub fn now() -> Timestamp {
+        Timestamp(chrono::Utc::now())
+    }
+
+    pub fn datetime(&self) -> &chrono::DateTime<chrono::Utc> {
+        &self.0
+    }
+}
+
 pub mod prelude {
-    pub use super::{Model, ModelMut, ModelBase, ModelTypeAssoc, validation::*, garde::Validate};
+    pub use super::{Model, ModelMut, ModelMeta, ModelCore, Timestamp, ModelTypeAssoc, validation::*, garde::Validate};
 }
 
 #[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::Type)]
@@ -44,7 +67,34 @@ impl From<&str> for Slug {
 
 #[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
 #[serde(default)]
-pub struct ModelBase {
+pub struct ModelMeta {
+    #[garde(dive)]
+    pub created_time: Timestamp,
+    #[garde(dive)]
+    pub modified_time: Timestamp
+}
+
+impl ModelMeta {
+    pub fn created_time(&self) -> &Timestamp {
+        &self.created_time
+    }
+
+    pub fn modified_time(&self) -> &Timestamp {
+        &self.modified_time
+    }
+
+    pub fn set_created_time(&mut self, created_time: Timestamp) {
+        self.created_time = created_time;
+    }
+
+    pub fn set_modified_time(&mut self, modified_time: Timestamp) {
+        self.modified_time = modified_time;
+    }
+}
+
+#[derive(Debug, Default, PartialEq, serde::Serialize, serde::Deserialize, garde::Validate, sqlx::FromRow)]
+#[serde(default)]
+pub struct ModelCore {
     #[garde(dive)]
     pub slug: Slug,
     #[garde(length(min = 1, max = 255))]
@@ -53,7 +103,7 @@ pub struct ModelBase {
     pub subline: String,
 }
 
-impl ModelBase {
+impl ModelCore {
     pub fn slug(&self) -> &str {
         &self.slug
     }
@@ -78,7 +128,7 @@ impl ModelBase {
         self.subline = subline;
     }
 
-    pub fn merge(mut self, other: ModelBase) -> Self {
+    pub fn merge(mut self, other: ModelCore) -> Self {
         if self.name.is_empty() {
             self.name = other.name;
         }
@@ -98,44 +148,64 @@ pub trait Model:
     + Default
     + garde::Validate
 {
-    fn model_base(&self) -> &ModelBase;
+    fn model_meta(&self) -> &ModelMeta;
+    fn model_core(&self) -> &ModelCore;
+
+    #[inline]
+    fn created_time(&self) -> &Timestamp {
+        &self.model_meta().created_time
+    }
+
+    #[inline]
+    fn modified_time(&self) -> &Timestamp {
+        &self.model_meta().modified_time
+    }
 
     /// The unique identifier for data in this model. Must match the model's
     /// name when passed through [slugify::slugify].
     #[inline]
     fn slug(&self) -> &str {
-        self.model_base().slug()
+        self.model_core().slug()
     }
 
     /// Used in headers, titles, etc.
     #[inline]
     fn name(&self) -> &str {
-        self.model_base().name()
+        self.model_core().name()
     }
 
     /// Used in subheadlines, very short descriptions for lists, etc.
     #[inline]
     fn subline(&self) -> &str {
-        self.model_base().subline()
+        self.model_core().subline()
     }
 }
 
 pub trait ModelMut: Model {
-    fn model_base_mut(&mut self) -> &mut ModelBase;
+    fn model_meta_mut(&mut self) -> &mut ModelMeta;
+    fn model_core_mut(&mut self) -> &mut ModelCore;
+
+    fn set_created_time(&mut self, created_time: Timestamp) {
+        self.model_meta_mut().set_created_time(created_time);
+    }
+
+    fn set_modified_time(&mut self, modified_time: Timestamp) {
+        self.model_meta_mut().set_modified_time(modified_time);
+    }
 
     fn set_name(&mut self, name: String) {
-        self.model_base_mut().set_name(name);
+        self.model_core_mut().set_name(name);
     }
 
     fn set_slug(&mut self, slug: Slug) {
-        self.model_base_mut().set_slug(slug);
+        self.model_core_mut().set_slug(slug);
     }
 
     fn set_subline(&mut self, subline: String) {
-        self.model_base_mut().set_subline(subline);
+        self.model_core_mut().set_subline(subline);
     }
 
-    fn merge_base(mut self, other: ModelBase) -> Self {
+    fn merge_base(mut self, other: ModelCore) -> Self {
         if self.name().is_empty() {
             self.set_name(other.name);
         }

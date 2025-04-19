@@ -6,7 +6,7 @@ use crate::*;
 /// The first blockquote after the first H1 is removed from the HTML and stored in [BasicModel::subline].
 /// All other headers are bumped up one level. Eg. H2 -> H1
 /// The [BasicModel::slug] is generated from [BasicModel::name].
-pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, String)> {
+pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelCore, String)> {
     let mut h1 = None; // holds the first h1
     let mut h1_done = false; // TRUE: h1 is_some() and it's completely parsed
     let mut after_h1 = false; // TRUE: the current event is first element after an h1 being parsed
@@ -134,13 +134,13 @@ pub fn parse_markdown_model(markdown: md::Parser) -> anyhow::Result<(ModelBase, 
     let slug = Slug::from(&name);
     let subline = h1_blockquote.unwrap_or_default();
 
-    let basic_model = ModelBase {
+    let meta = ModelCore {
         name,
         slug,
         subline,
     };
 
-    Ok((basic_model, html))
+    Ok((meta, html))
 }
 
 #[cfg(test)]
@@ -183,7 +183,7 @@ r##"<h1>Section 1</h1>
 <p>This is also <strong>some</strong> text.</p>
 "##;
 
-        let expected_model: ModelBase = ModelBase {
+        let expected_meta: ModelCore = ModelCore {
             name: "Hello World?".to_string(),
             slug: "hello-world".into(),
             subline: "This is a subline".to_string(),
@@ -196,9 +196,9 @@ r##"<h1>Section 1</h1>
         assert_eq!(EXPECTED_HTML_UNALTERED, unaltered_html, "Unaltered HTML should be parsed");
 
         let markdown = md::Parser::new(INPUT);
-        let (basic_model, html) = parse_markdown_model(markdown).expect("HTML should be parsed from Markdown");
+        let (meta, html) = parse_markdown_model(markdown).expect("HTML should be parsed from Markdown");
         assert_eq!(EXPECTED_HTML_PARSED, html, "HTML should be parsed from Markdown");
 
-        assert_eq!(expected_model, basic_model, "Basic model should be parsed from Markdown");
+        assert_eq!(expected_meta, meta, "Basic model should be parsed from Markdown");
     }
 }

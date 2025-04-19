@@ -4,7 +4,7 @@ use serde;
 use garde;
 use toml;
 
-use crate::{modeling::prelude::*, ModelBase};
+use crate::{modeling::prelude::*, ModelCore};
 
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, garde::Validate)]
@@ -12,8 +12,11 @@ use crate::{modeling::prelude::*, ModelBase};
 pub struct Site {
     #[serde(flatten)]
     #[garde(dive)]
-    pub model_base: ModelBase,
-    #[garde(length(min = 1))]
+    pub model_meta: ModelMeta,
+    #[serde(flatten)]
+    #[garde(dive)]
+    pub model_core: ModelCore,
+     #[garde(length(min = 1))]
     pub url: String,
     #[garde(length(min = 1))]
     pub owner_name: String,
@@ -24,14 +27,22 @@ pub struct Site {
 }
 
 impl Model for Site {
-    fn model_base(&self) -> &ModelBase {
-        &self.model_base
+    fn model_meta(&self) -> &ModelMeta {
+        &self.model_meta
+    }
+
+    fn model_core(&self) -> &ModelCore {
+        &self.model_core
     }
 }
 
 impl ModelMut for Site {
-    fn model_base_mut(&mut self) -> &mut ModelBase {
-        &mut self.model_base
+    fn model_meta_mut(&mut self) -> &mut ModelMeta {
+        &mut self.model_meta
+    }
+
+    fn model_core_mut(&mut self) -> &mut ModelCore {
+        &mut self.model_core
     }
 }
 

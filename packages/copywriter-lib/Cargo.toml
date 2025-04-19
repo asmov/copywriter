@@ -21,9 +21,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
 slugify = "0.1"
-sqlx = { version = "0.8.5", features = ["runtime-async-std", "sqlite"] }
-tokio = { version = "1.44.2", features = ["rt", "rt-multi-thread"] }
-futures = "0.3.31"
+sqlx = { version = "0.8", features = ["runtime-async-std", "sqlite", "chrono"] }
+tokio = { version = "1.44", features = ["rt", "rt-multi-thread"] }
+futures = "0.3"
+chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
 asmov-common-testing = "2"

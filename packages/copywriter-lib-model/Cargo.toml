@@ -15,4 +15,4 @@ anyhow = "1.0.98"
 asmov-copywriter-lib = { version = "0.1", path = "../copywriter-lib" }
 garde = { version = "0.22", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
-sqlx = "0.8.5"
+sqlx = { version = "0.8.5", features = ["chrono"] }

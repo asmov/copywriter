@@ -1,4 +1,4 @@
-use asmov_copywriter_lib::{Slug, ModelBase};
+use asmov_copywriter_lib::{Slug, ModelCore};
 use serde;
 use garde;
 use sqlx;
@@ -11,22 +11,38 @@ pub struct Article {
     #[serde(flatten)]
     #[sqlx(flatten)]
     #[garde(dive)]
-    pub model_base: ModelBase,
+    pub model_meta: ModelMeta,
+    #[serde(flatten)]
+    #[sqlx(flatten)]
+    #[garde(dive)]
+    pub model_core: ModelCore,
     #[garde(dive)]
     pub author_slug: Slug,
-    #[garde(length(min = 1))]
-    pub published_timestamp: String,
+}
+
+impl Article {
+    pub fn author_slug(&self) -> &Slug {
+        &self.author_slug
+    }
 }
 
 impl Model for Article {
-    fn model_base(&self) -> &ModelBase {
-        &self.model_base
+    fn model_meta(&self) -> &ModelMeta {
+        &self.model_meta
+    }
+
+    fn model_core(&self) -> &ModelCore {
+        &self.model_core
     }
 }
 
 impl ModelMut for Article {
-    fn model_base_mut(&mut self) -> &mut ModelBase {
-        &mut self.model_base
+    fn model_meta_mut(&mut self) -> &mut ModelMeta {
+        &mut self.model_meta
+    }
+
+    fn model_core_mut(&mut self) -> &mut ModelCore {
+        &mut self.model_core
     }
 }
 
@@ -48,24 +64,39 @@ impl Article {
     }
 
     pub async fn db_insert(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
-        sqlx::query("INSERT INTO articles (slug, name, subline, author_slug, published_timestamp) VALUES (?, ?, ?, ?, ?)")
-        .bind(self.model_base.slug())
-        .bind(self.model_base.name())
-        .bind(self.model_base.subline())
-        .bind(self.author_slug.as_str())
-        .bind(&self.published_timestamp)
+        sqlx::query(r"INSERT INTO articles (
+                created_time,
+                modified_time,
+                slug,
+                name,
+                subline,
+                author_slug) VALUES (?,?,?,?,?,?)")
+        .bind(self.created_time())
+        .bind(self.modified_time())
+        .bind(self.slug())
+        .bind(self.name())
+        .bind(self.subline())
+        .bind(self.author_slug())
         .execute(pool).await?;
 
         Ok(())
     }
 
     pub async fn db_update(&self, pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
-        sqlx::query("UPDATE articles SET name = ?, subline = ?, author_slug = ?, published_timestamp = ? WHERE slug = ? LIMIT 1")
-        .bind(self.model_base.name())
-        .bind(self.model_base.subline())
-        .bind(self.author_slug.as_str())
-        .bind(&self.published_timestamp)
-        .bind(self.model_base.slug())
+        sqlx::query(r"UPDATE articles
+            SET created_time = ?,
+                modified_time = ?,
+                name = ?,
+                subline = ?,
+                author_slug = ?
+            WHERE slug = ?
+            LIMIT 1")
+        .bind(self.created_time())
+        .bind(self.modified_time())
+        .bind(self.name())
+        .bind(self.subline())
+        .bind(self.author_slug().as_str())
+        .bind(self.slug())
         .execute(pool).await?;
 
         Ok(())

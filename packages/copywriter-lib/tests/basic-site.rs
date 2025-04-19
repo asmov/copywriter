@@ -27,8 +27,14 @@ mod tests {
             output_dir: test.temp_dir().to_path_buf(),
         };
 
+        let timestamp = Timestamp::now();
+
         let site = lib::Site {
-            model_base: ModelBase {
+            model_meta: ModelMeta {
+                created_time: timestamp.clone(),
+                modified_time: timestamp.clone(),
+            },
+            model_core: ModelCore {
                 slug: "basic-test-website".into(),
                 name: "Basic Test Website".to_string(),
                 subline: "This is a basic website".to_string(),
